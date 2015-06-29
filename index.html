@@ -40,14 +40,13 @@
 			}
 
 		}, null, function( collectedImages ){
-			console.log(collectedImages)
-			
-			TweenMax.set(collectedImages, {scale: 10});
+
+			TweenMax.set(collectedImages, {alpha: 0});
 
 		}, function( progress, imagedElement, loadedState ){
 
 			if(loadedState){
-				TweenMax.fromTo(imagedElement, 0.25, { alpha: 0 }, { alpha: 1, delay: 2 });
+				TweenMax.fromTo(imagedElement, 0.25, { alpha: 0, scale: 0.5 }, { alpha: 1, scale: 1, delay: 2 });
 			}
 
 			Site.modules.Preloader.setProgress(progress);
@@ -73,7 +72,7 @@
 				background: '#666666',
 				zIndex: '90'
 			})
-			TweenMax.set(this.$directLine, { alpha: 0, y:  - this.bodyMoveDownBy })
+			TweenMax.set(this.$directLine, { alpha: 0, y: - this.bodyMoveDownBy })
 
 			this.$cubicLine = $('<div></div>')
 			this.$body.append(this.$cubicLine);
@@ -86,7 +85,7 @@
 				background: '#999999',
 				zIndex: '90'
 			})
-			TweenMax.set(this.$cubicLine, { alpha: 0, y:  - this.bodyMoveDownBy })			
+			TweenMax.set(this.$cubicLine, { alpha: 0, y: - this.bodyMoveDownBy })			
 		},{
 			show: function( clearWidth ){
 
@@ -418,16 +417,15 @@
 		img, .avatar{
 			position: relative;
 			margin: 0;
-			width: 5px;
-			height: 5px;
+			width: 100px;
+			height: 100px;
 			float: left;
-			/*opacity: 0;*/
 			pointer-events: none;
 		}
 	</style>
 </head>
 	<body>
-		<a id="test">Test</a>
+		<a id="test" style="display: block; position: fixed; top: 20px; left: 20px; background: red; z-index: 9;">Test</a>
 		<div id="linear-preloader"></div>
 		<div id="cubic-preloader"></div>
 <img src="http://www.flasher.ru/forum/image.php?u=20040" alt="">

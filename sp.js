@@ -79,9 +79,9 @@
             for (var j = 0; j < imageDatasLength; j++) {
                 var image = new Image();
                 image.imageData = imageDatas[j];
-                image.onload = image.onerror = function (e) {
+                image.onload = image.onerror = function(e) {
                     imageDatasLoaded++;
-                    eachCallback.apply(this.imageData.element, [imageDatasLoaded, imageDatasLength, e.type == 'load'])
+                    eachCallback.apply(this.imageData.element, [imageDatasLoaded, imageDatasLength, typeof e == 'undefined' ? true : (e.type == 'load')])
                     if (imageDatasLoaded == imageDatasLength) {
                         finishedCallback.call(nativeElement);
                     }
@@ -97,8 +97,8 @@
 
 /*!
  * SP Framework
- * VERSION: 1.016
- * DATE: 2015-06-19
+ * VERSION: 1.017
+ * DATE: 2015-06-29
  * 
  * @author: Hauts, misha@sborkaproject.com
  */
@@ -109,7 +109,7 @@
 
     var internals = {
 
-        VERSION: '1.016 [19.06.2015]',
+        VERSION: '1.017 [29.06.2015]',
 
         previousSP: window.SP,
         created: false,
