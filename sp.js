@@ -1,8 +1,17 @@
-// Custom modification of jquery.waitforimages.js
-// Thanks to alexanderdickson
-// https://github.com/alexanderdickson/waitForImages
+/*
+ * SP Framework
+ * VERSION: 1.020
+ * DATE: 2015-07-02
+ * 
+ * @author: Hauts, misha@sborkaproject.com
+ *
+ *
+ * jQuery.controlImageLoading is a custom modification of jquery.waitforimages.js
+ * Thanks to alexanderdickson
+ * https://github.com/alexanderdickson/controlImageLoading
+ */
 ;(function () {
-    var eventNamespace = 'waitForImages';
+    var eventNamespace = 'controlImageLoading';
     var testProps = {
         deep: {
             props: ['backgroundImage', 'listStyleImage', 'borderImage', 'borderCornerImage', 'cursor'],
@@ -16,7 +25,7 @@
     var matchUrl = /url\(\s*(['"]?)(.*?)\1\s*\)/g;
     var imageEvents = 'load.' + eventNamespace + ' error.' + eventNamespace;
 
-    $.fn.waitForImages = function (finishedCallback, eachCallback, deepTest) {
+    $.fn.controlImageLoading = function (finishedCallback, eachCallback, deepTest) {
         var nativeElement = this[0];
         var imageDatas = [];
         var $testElements = this.first().find('*').addBack();
@@ -95,13 +104,6 @@
     };
 })();
 
-/*!
- * SP Framework
- * VERSION: 1.017
- * DATE: 2015-06-29
- * 
- * @author: Hauts, misha@sborkaproject.com
- */
 ;(function () {
 
     var U = 'undefined';
@@ -109,7 +111,7 @@
 
     var internals = {
 
-        VERSION: '1.017 [29.06.2015]',
+        VERSION: '1.020 [02.07.2015]',
 
         previousSP: window.SP,
         created: false,
@@ -180,8 +182,11 @@
             }
             return cloneTo;
         },
-        createInstance: function (name, props, lock) {
+        createInstance: function (name, props, lock, addEventDispatching ) {
             var result = internals.cloneObjectPropsTo(props, eval('new (function ' + name + '(){})()'));
+            if(addEventDispatching){
+                this.createEventDispatcher( result );
+            }
             if (lock) {
                 if (Object.seal) {
                     Object.seal(result);
@@ -224,6 +229,70 @@
         },
         argsToArray: function (args) {
             return Array.prototype.slice.call(args)
+        },
+        createEventDispatcher : function( target ){
+            var listeners = {};
+            target.listeners = listeners;
+            target.addEventListener = function(type, callback, scope) {
+                if(typeof listeners[type] == 'undefined' ){
+                    listeners[type] = [];
+                }
+                var list = listeners[type];
+                list.push({
+                    callback: callback,
+                    scope: scope
+                })
+                return this;
+            };
+            target.removeEventListener = function(type, callback) {
+                var list = listeners[type];
+                if (list) {
+                    var i = list.length;
+                    while (--i > -1) {
+                        if (list[i].callback === callback) {
+                            list.splice(i, 1);
+                            return this;
+                        }
+                    }
+                }
+                return this;
+            };
+            target.removeEventListeners = function(type){
+                listeners[type] = null;
+                return this;
+            }
+            target.hasEventListeners = function(type){
+                return typeof listeners[type] != 'undefined';
+            }
+            target.hasEventListener = function(type, callback){
+                var list = listeners[type];
+                if (list) {
+                    var i = list.length;
+                    while (--i > -1) {
+                        if (list[i].callback === callback) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }                     
+            target.dispatchEvent = function(type, props) {
+                var list = listeners[type];
+                if (list) {
+                    props = props || {};
+                    props.type = type;
+                    var event = internals.createInstance('Event', props);                    
+                    var i = list.length;
+                    while (--i > -1) {
+                        var listener = list[i];
+                        if (listener) {
+                            listener.callback.apply(listener.scope, [event]);
+                        }
+                    }
+                }
+                return this;
+            };
+            return target;
         }
     }
 
@@ -279,6 +348,7 @@
 
             // Custom:
             customs: internals.createInstance('Customs'),
+            events: internals.createInstance('Events'),
 
             // Utils
             utils: internals.createInstance('Utils', {
@@ -364,6 +434,9 @@
                 },
                 argsToArray: function () {
                     return internals.argsToArray(arguments);
+                },
+                createEventDispatcher: function( target ){
+                    return internals.createEventDispatcher( target )
                 }
             }),
 
@@ -398,7 +471,7 @@
                             return this;
                         },
                         name: pageName
-                    })
+                    }, false, true);
                     this[pageName] = newPage;
                     SiteController.utils.testApply(newPage, classModificator);
                     this.all.push(newPage);
@@ -430,7 +503,7 @@
                         },
                         name: moduleName,
                         initPriority: initPriority
-                    })
+                    }, false, true);
                     this[moduleName] = newModule;
                     if (typeof initState != U) {
                         modulesByStates = internals.modulesByStates[initState];
@@ -493,6 +566,10 @@
 
                 if (typeof startPage == 'string') {
                     startPage = this.pages[startPage];
+                } else if(typeof startPage == 'function'){
+                    startPage = internals.createInstance('InlinePageController', {
+                        init: startPage
+                    })
                 }
 
                 internals.startPage = startPage;
@@ -531,7 +608,7 @@
                         this.$body = $('body');
                         launchNextState(state);
 
-                        var collectedImagedElements = this.$body.waitForImages(function() {
+                        var collectedImagedElements = this.$body.controlImageLoading(function() {
                             internals.imagesLoaded = true;
                             if (internals.windowLoaded) {
                                 switchState.apply(SiteController, [SiteController.states.IMAGES_LOADED]);
@@ -565,7 +642,7 @@
                 internals.imageProgressHandler = imageProgressHandler;
                 internals.cloneObjectPropsTo(prototypeObject, this)
             }
-        });
+        }, false, true);
         if (!skipWindowScope) {
             window[name] = SiteController;
         }
