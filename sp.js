@@ -8,8 +8,9 @@
  *
  * jQuery.controlImageLoading is a custom modification of jquery.waitforimages.js
  * Thanks to alexanderdickson
- * https://github.com/alexanderdickson/controlImageLoading
+ * https://github.com/alexanderdickson/waitforimages
  */
+
 ;(function () {
     var eventNamespace = 'controlImageLoading';
     var testProps = {
@@ -170,7 +171,7 @@
         warn: function (message, forced) {
             internals.log(message, '#ff7700', forced);
         },
-        cloneObjectPropsTo: function (cloneFrom, cloneTo) {
+        cloneObjectPropsTo: function (cloneFrom, cloneTo, safeMode) {
             if (typeof cloneTo != O) {
                 cloneTo = {};
             }
@@ -178,6 +179,11 @@
                 return cloneTo;
             }
             for (var i in cloneFrom) {
+                if(safeMode){
+                    if(typeof cloneTo[i] != 'undefined'){
+                        internals.error('SiteController already has property \'' + i + '\'!')
+                    }
+                }
                 cloneTo[i] = cloneFrom[i];
             }
             return cloneTo;
@@ -573,7 +579,7 @@
                 }
 
                 internals.startPage = startPage;
-                internals.startPageArgs = [Array.prototype.slice.call(arguments, 1)];
+                internals.startPageArgs = Array.prototype.slice.call(arguments, 1);
 
                 this.$window = $(window);
                 this.$document = $(document);
@@ -627,8 +633,8 @@
                         }
                     }
                 }
-
                 $(SiteController.utils.shim(this, switchState, [SiteController.states.DOM_READY]));
+
                 this.$window.load(SiteController.utils.shim(this, switchState, [SiteController.states.WINDOW_LOADED]));
                 switchState.apply(this, [SiteController.states.INIT])
             },
@@ -640,7 +646,7 @@
                 internals.constructor = constructor;
                 internals.imageCollectedHandler = imageCollectedHandler;
                 internals.imageProgressHandler = imageProgressHandler;
-                internals.cloneObjectPropsTo(prototypeObject, this)
+                internals.cloneObjectPropsTo(prototypeObject, this, true);
             }
         }, false, true);
         if (!skipWindowScope) {
