@@ -1,7 +1,7 @@
 /*
  * SP Framework
- * VERSION: 1.020
- * DATE: 2015-07-02
+ * VERSION: 1.021
+ * DATE: 2015-08-10
  * 
  * @author: Hauts, misha@sborkaproject.com
  *
@@ -302,7 +302,7 @@
         }
     }
 
-    function SP() {}
+    function SP(){}
     SP.prototype.current = internals.cached();
 
     SP.prototype.create = function (name, debugMode, skipWindowScope) {
@@ -541,6 +541,16 @@
             // Elements:
             elements: internals.createInstance('Elements', {
                 all: [],
+                addElemented: function( elementsSelector, elementName, constructor, prototypeObject, classModificator ){
+                    var elementClass = SiteController.elements.add(elementName, constructor, prototypeObject, classModificator)
+                    SiteController.modules.add(elementName + 'Starter', function(){
+                        var $elements = $(elementsSelector);
+                        var totalElements = $elements.length;
+                        for(var k=0; k<totalElements; k++){
+                            new elementClass($elements.eq(k))
+                        }
+                    }, null, SiteController.states.DOM_READY)
+                },
                 add: function (elementName, constructor, prototypeObject, classModificator) {
                     elementName = internals.createName(elementName);
                     internals.log('Add element: ' + elementName);
